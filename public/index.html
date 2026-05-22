@@ -35,8 +35,6 @@
                     <div id="standard">
                         <button type="button" id="my-music">My Music</button>
                         <button type="button" id="podcast">Podcast</button>
-                        <button type="button" id="radio">Radio</button>
-                        <button type="button" id="live">Live</button>
                         <button type="button" id="top-charts">Top Charts</button>
                     </div>
                     <div id="addable">
@@ -61,45 +59,38 @@
         <dispA class="main-content">
             <div id="main">
                 <section class="content-section">
-                    <h2>Good afternoon</h2>
-                    <div class="grid-container">
-                        <div class="card-horizontal">
-                            <img src=" alt="Album Art">
-                            <span>Liked Songs</span>
-                            <button class="play-hover"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="card-horizontal">
-                            <img src="" alt="Album Art">
-                            <span>Coding Focus</span>
-                            <button class="play-hover"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                    </div>
+                    <h2>Genres</h2>
+                    <button type="button" class="categories" id="Pop">Pop</button>
+                    <button type="button" class="categories" id="Rock">Rock</buttton>
+                    <button type="button" class="categories" id="Jazz">Jazz</button>
+                    <button type="button" class="categories" id="Classical">Classical</button>
+                    <button type="button" class="categories" id="Hip-Hop">Hip-Hop</button>
+                    <button type="button" class="categories" id="Electronic">Electronic</button>
                 </section>
 
                 <section class="content-section">
-                    <h2>Made For You</h2>
-                    <div class="cards-grid">
-                        <div class="card-vertical">
-                            <div class="img-container">
-                                <img src="" alt="Mix Cover">
-                                <button class="play-badge"><i class="fa-solid fa-play"></i></button>
-                            </div>
-                            <h3>Daily Mix 1</h3>
-                            <p>Lo-Fi, Chillhop, and electronic beats for working.</p>
+                    <h2 id="list">Made For You</h2>
+                    <div type="button" class="song-bar" id=song-bar>
+                        <img src="https://i.scdn.co/image/ab67616d0000b273e1c8a9c8f1e5b2a3c4d5e6" alt="Album Art">
+                        <div class="song-info">
+                            <div class="song-title" id="song-title">Midnight City</div>
+                            <div class="song-artist" id="song-artist">M83</div>
                         </div>
-                        <div class="card-vertical">
-                            <div class="img-container">
-                                <img src="" alt="Mix Cover">
-                                <button class="play-badge"><i class="fa-solid fa-play"></i></button>
-                            </div>
-                            <h3>Discover Weekly</h3>
-                            <p>Your weekly mixtape of fresh, handpicked music.</p>
+                        <div class="play-btn" id="playBtn">
+                            <i class="fa-solid fa-circle-play"></i> 
+                        </div>
+                        <div class="download-btn" id="downloadBtn">
+                            <i class="fa-solid fa-download"></i>
+                        </div>
+                        <div class="share-btn" id="shareBtn">
+                            <i class="fa-solid fa-share-nodes"></i>
+                        </div>
+                        <div class="duration" id="duration">
+                            <div>3:45</div>
                         </div>
                     </div>
                 </section>
-                <!-- Bottom Playback Control Bar -->
                 <div class="player-bar">
-                    <!-- Current Track Info -->
                     <div class="track-info">
                         <img src="" alt="Current Album" class="now-playing-img">
                         <div class="track-details">
@@ -107,8 +98,7 @@
                         </div>
                         <button class="icon-btn heart-btn"><i class="fa-regular fa-heart"></i></button>
                     </div>
-
-                    <!-- Central Player Controls -->        
+     
                     <div class="player-controls">
                         <div class="control-buttons">
                             <button class="icon-btn"><i class="fa-solid fa-shuffle"></i></button>
