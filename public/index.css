@@ -43,10 +43,8 @@ input#search{
     width:90%;
     border-radius:20px;
     border:none;
-}
-
-#search-form button{
-    height:60%;
+    padding-right:50px;
+    padding-left:50px;
 }
 
 main{
