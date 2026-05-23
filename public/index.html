@@ -3,133 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>beatz_flow</title>
-    <link rel='stylesheet' href='index.css'>
+    <title>Beatz_Flow</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <header>
-        <logo class='logo'>beatx-flow</logo>
+        <div class="logo"><b>Beatz_Flow</b></div>
         <form id="search-form">
-            <input type="text" id='search' placeholder="Search for music, artists, albums..." >
+            <input type="text" id="search" placeholder="Search for music, artists, albums...">
         </form>
-        <account type="button" id="acc-button">
-            <button></button>
-        </account>
+        <div id="acc-button">
+            <button type="button"></button>
+        </div>
     </header>
+
     <main class="the-rest">
+        <!-- NAVIGATION BLOCK -->
         <div class="navi" id="navbar">
             <div id="first-lv">
-                <div id='standard'>
-                    <button type='button' id="listen"></button>
-                    <button type='button' id="contribute"></button>
+                <div id="standard">
+                    <button type="button" id="listen" title="Listen"></button>
+                    <button type="button" id="contribute" title="Contribute"></button>
                 </div>
-                <div id='addable'>
-                    <button type='button' id="quicky"></button>
+                <div id="addable">
+                    <button type="button" id="quicky" title="Quick Access"></button>
                 </div>
-                <div id='navfooter'>
-                    <button type='button' id="settings"></button>
+                <div id="navfooter">
+                    <button type="button" id="settings" title="Settings"></button>
                 </div>
             </div>
+            
             <div id="second-lv">
+                <!-- Listen Submenu Drawer -->
                 <div class="listen-s" id="listen-s">
-                    <div id="standard">
+                    <div id="standard-listen">
                         <button type="button" id="my-music">My Music</button>
-                        <button type="button" id="podcast">Podcast</button>
                         <button type="button" id="top-charts">Top Charts</button>
                     </div>
-                    <div id="addable">
-                    </div>
                 </div>
-                <div class="contribute-s" id="contribute-s">
-                    <div id="standard">
-                        <button type="button" id="upload">Upload</button>
+                
+                <!-- Contribute Submenu Drawer & Modal -->
+                <div class="contribute-s hidden" id="contribute-s">
+                    <div id="standard-contrib">
                         <button type="button" id="manage-up">Manage My Uploads</button>
                     </div>
-                    <div id="addable">
 
+                    <!-- Manage Uploads Modal Frame -->
+                    <div id="manage-uploads-modal" class="hidden modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Your Uploaded Tracks</h3>
+                                <button type="button" id="close-manage-modal">✕</button>
+                            </div>
+                            <div id="user-uploads-list" class="scrollable-list">
+                                <!-- JavaScript injects upload history dynamically -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="settings-menu" id="settings-menu">
+
+                <!-- Quick Access Submenu Drawer -->
+                <div class="quicky-menu hidden" id="quicky-menu">
+                    <span class="sidebar-tag">★ Quick Access Addables</span>
+                    <div id="quicky-addable-list">
+                        <p class="empty-fallback">No tracks pinned yet.</p>
+                    </div>
+                </div>
+
+                <!-- Settings Submenu Drawer -->
+                <div class="settings-menu hidden" id="settings-menu">
                     <button type="button" id="profile">Profile</button>
                     <button type="button" id="general-settings">General Settings</button>
                     <button type="button" id="help">Help</button>
                 </div>
             </div>
         </div>
-        <dispA class="main-content">
+
+        <!-- VIEWPORT MAIN CANVAS AREA -->
+        <div class="main-content">
             <div id="main">
-                <section class="content-section">
-                    <h2>Genres</h2>
-                    <button type="button" class="categories" id="Pop">Pop</button>
-                    <button type="button" class="categories" id="Rock">Rock</buttton>
-                    <button type="button" class="categories" id="Jazz">Jazz</button>
-                    <button type="button" class="categories" id="Classical">Classical</button>
-                    <button type="button" class="categories" id="Hip-Hop">Hip-Hop</button>
-                    <button type="button" class="categories" id="Electronic">Electronic</button>
-                </section>
+                
+                <!-- DEFAULT CORE CONTENT HUB (GENRES & MADE FOR YOU) -->
+                <div id="view-home" class="main-view-panel">
+                    <section class="content-section">
+                        <h2>Genres</h2>
+                        <button type="button" class="categories" id="Pop">Pop</button>
+                        <button type="button" class="categories" id="Rock">Rock</button>
+                        <button type="button" class="categories" id="Jazz">Jazz</button>
+                        <button type="button" class="categories" id="Classical">Classical</button>
+                        <button type="button" class="categories" id="Hip-Hop">Hip-Hop</button>
+                        <button type="button" class="categories" id="Electronic">Electronic</button>
+                    </section>
 
-                <section class="content-section">
-                    <h2 id="list">Made For You</h2>
-                    <div type="button" class="song-bar" id=song-bar>
-                        <img src="https://i.scdn.co/image/ab67616d0000b273e1c8a9c8f1e5b2a3c4d5e6" alt="Album Art">
-                        <div class="song-info">
-                            <div class="song-title" id="song-title">Midnight City</div>
-                            <div class="song-artist" id="song-artist">M83</div>
-                        </div>
-                        <div class="play-btn" id="playBtn">
-                            <i class="fa-solid fa-circle-play"></i> 
-                        </div>
-                        <div class="download-btn" id="downloadBtn">
-                            <i class="fa-solid fa-download"></i>
-                        </div>
-                        <div class="share-btn" id="shareBtn">
-                            <i class="fa-solid fa-share-nodes"></i>
-                        </div>
-                        <div class="duration" id="duration">
-                            <div>3:45</div>
-                        </div>
-                    </div>
-                </section>
-                <div class="player-bar">
-                    <div class="track-info">
-                        <img src="" alt="Current Album" class="now-playing-img">
-                        <div class="track-details">
-                            <a href="#" class="track-title">Midnight City</a>                    <a href="#" class="track-artist">M83</a>
-                        </div>
-                        <button class="icon-btn heart-btn"><i class="fa-regular fa-heart"></i></button>
-                    </div>
-     
-                    <div class="player-controls">
-                        <div class="control-buttons">
-                            <button class="icon-btn"><i class="fa-solid fa-shuffle"></i></button>
-                            <button class="icon-btn"><i class="fa-solid fa-backward-step"></i></button>
-                            <button class="icon-btn play-main" id="mainPlayBtn"><i class="fa-solid fa-circle-play"></i></button>
-                            <button class="icon-btn"><i class="fa-solid fa-forward-step"></i></button>
-                            <button class="icon-btn"><i class="fa-solid fa-repeat"></i></button>
-                        </div>
-                        <div class="progress-container">
-                            <span class="time">1:24</span>
-                            <div class="progress-bar">
-                                <div class="progress" style="width: 40%;"></div>
+                    <section class="content-section" id="listofsongs">
+                        <h2 id="list">Made For You</h2>
+                        <div class="song-bar" id="song-bar">
+                            <img src="" alt="">
+                            <div class="song-info">
+                                <div class="song-title" id="song-title">Midnight City</div>
+                                <a href="#" class="song-artist" id="song-artist">M83</a>
                             </div>
-                            <span class="time">3:45</span>
+                            <div class="play-btn" id="playBtn">
+                                <i class="fa-solid fa-circle-play"></i> 
+                            </div>
+                            <div class="download-btn" id="downloadBtn">
+                                <i class="fa-solid fa-download"></i>
+                            </div>
+                            <div class="share-btn" id="shareBtn">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </div>
+                            <div class="duration" id="duration">
+                                <div>3:45</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- DYNAMIC TARGET INTERFACES FOR VIEW MODES -->
+                
+                <!-- 1A. LISTEN VIEW: Browse Music Marketplace -->
+                <div id="view-browse" class="main-view-panel hidden">
+                    <div class="view-header-split">
+                        <div>
+                            <h1 class="view-heading">Browse Audio Matrix</h1>
+                            <p class="view-subtext">Explore globally published records and digital metadata streams.</p>
+                        </div>
+                        <div class="search-pill-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Search tracks, producers, stems...">
                         </div>
                     </div>
-
-                    <!-- Volume & Utility Controls -->
-                    <div class="volume-controls">
-                        <button class="icon-btn"><i class="fa-solid fa-microphone"></i></button>
-                        <button class="icon-btn"><i class="fa-solid fa-list"></i></button>
-                        <button class="icon-btn"><i class="fa-solid fa-laptop-code"></i></button>
-                        <button class="icon-btn"><i class="fa-solid fa-volume-high"></i></button>
-                        <div class="volume-bar">
-                            <div class="progress" style="width: 70%;"></div>
+                    <div class="genre-pill-row">
+                        <span class="genre-pill active">All Streams</span>
+                        <span class="genre-pill">Synthwave / Retro</span>
+                        <span class="genre-pill">Lo-Fi Study Beats</span>
+                        <span class="genre-pill">Industrial Techno</span>
+                    </div>
+                    <div class="catalog-grid">
+                        <div class="catalog-card">
+                            <div class="card-art-placeholder">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <h4>Cyberpunk Skyline</h4>
+                            <p>Neon Phantom</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- 1B. LISTEN VIEW: Curated Playlists Hub -->
+                <div id="view-playlists" class="main-view-panel hidden">
+                    <h1 class="view-heading">Curated Hubs</h1>
+                    <p class="view-subtext mb-32">Hand-selected sonic paths compiled by network administrators.</p>
+                    <div class="playlists-grid">
+                        <div class="playlist-folder-card">
+                            <span class="badge-tag">Heavy Rotation</span>
+                            <div class="folder-icon">⚡</div>
+                            <h3>Developer Deep Focus</h3>
+                            <p>High-bpm dark ambient textures built for system design architecture sprint cycles.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. CONTRIBUTE VIEW: Upload Track Panel -->
+                <div id="view-upload" class="main-view-panel hidden max-width-form">
+                    <div class="text-center mb-32">
+                        <h1 class="view-heading">Deploy Audio Binary</h1>
+                        <p class="view-subtext">Secure streaming packets link instantly to Cloudflare edge nodes storage rings.</p>
+                    </div>
+                    <form id="uploadForm" class="styled-form">
+                        <div>
+                            <label class="form-label">Target Binary Payload</label>
+                            <div id="dropZone" class="drop-zone-box">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <p id="dropZoneText">Click or drag an MP3 audio track container here</p>
+                            </div>
+                            <input type="file" id="audioFile" accept="audio/mpeg, audio/mp3" style="display: none;">
+                        </div>
+                        <div class="form-grid-row">
+                            <div>
+                                <label for="trackTitle" class="form-label">Song Title Identification</label>
+                                <input type="text" id="trackTitle" placeholder="e.g., Solar Wind Resonance" required class="form-input">
+                            </div>
+                            <div>
+                                <label for="trackArtist" class="form-label">Producer Handle</label>
+                                <input type="text" id="trackArtist" placeholder="e.g., DJ Array" required class="form-input">
+                            </div>
+                        </div>
+                        <div id="uploadProgressContainer" class="hidden progress-container-block">
+                            <div class="progress-meta-text">Streaming network stream data blocks...</div>
+                            <div class="progress-bar-track">
+                                <div id="uploadProgressBar" class="progress-bar-thumb"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-publish-btn">Publish Track to Edge Pipeline</button>
+                    </form>
+                </div>
+
+                <!-- 3. SETTINGS VIEW: Global Settings Management -->
+                <div id="view-settings" class="main-view-panel hidden max-width-settings">
+                    <h1 class="view-heading">System Configurations</h1>
+                    <p class="view-subtext mb-32">Calibrate system processing blocks, layout options, and memory storage rules.</p>
+                    <div class="settings-stack">
+                        <div class="settings-card">
+                            <div>
+                                <h3>Stream Execution Profiles</h3>
+                                <p>Higher values process clean transients but cost wider network payloads.</p>
+                            </div>
+                            <select class="settings-select">
+                                <option value="high">Lossless Audio Flac (320kbps)</option>
+                                <option value="mid" selected>Standard Matrix Stream (192kbps)</option>
+                                <option value="low">Optimized Low-Bandwidth Pipe (96kbps)</option>
+                            </select>
+                        </div>
+                        <div class="settings-card">
+                            <div>
+                                <h3>Hardware Canvas Acceleration</h3>
+                                <p>Leverages machine shaders to render web elements fluidly.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-card border-danger">
+                            <div>
+                                <h3 class="text-danger">Clear Local Cache Indices</h3>
+                                <p>Flushes shortcut collections, session upload trackers, and token strings.</p>
+                            </div>
+                            <button type="button" class="purge-cache-btn">Purge Cache Logs</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </dispA>
+        </div>
     </main>
-    <script href="index.js"></script>
+
+    <!-- FOOTER PLAYER MECHANISM CONTROLLER BAR -->
+    <div class="player-bar">
+        <div class="track-info">
+            <img src="" alt="Current Album" class="now-playing-img">
+            <div class="track-details">
+                <a href="#" class="track-title">Midnight City</a>
+                <a href="#" class="track-artist">M83</a>
+            </div>
+            <button class="icon-btn heart-btn" type="button"><i class="fa-regular fa-heart"></i></button>
+        </div>
+
+        <div class="player-controls">
+            <div class="control-buttons">
+                <button class="icon-btn" type="button"><i class="fa-solid fa-shuffle"></i></button>
+                <button class="icon-btn" type="button"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="icon-btn play-main" id="mainPlayBtn" type="button"><i class="fa-solid fa-circle-play"></i></button>
+                <button class="icon-btn" type="button"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="icon-btn" type="button"><i class="fa-solid fa-repeat"></i></button>
+            </div>
+            <div class="progress-container">
+                <span class="time">1:24</span>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 40%;"></div>
+                </div>
+                <span class="time">3:45</span>
+            </div>
+        </div>
+
+        <div class="volume-controls">
+            <button class="icon-btn" type="button"><i class="fa-solid fa-microphone"></i></button>
+            <button class="icon-btn" type="button"><i class="fa-solid fa-list"></i></button>
+            <button class="icon-btn" type="button"><i class="fa-solid fa-laptop-code"></i></button>
+            <button class="icon-btn" type="button"><i class="fa-solid fa-volume-high"></i></button>
+            <div class="volume-bar">
+                <div class="progress" style="width: 70%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/index.js"></script>
 </body>
 </html>
