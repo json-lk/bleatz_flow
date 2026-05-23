@@ -1,19 +1,5 @@
 // public/js/main.js
 
-// Standalone authentication worker trigger
-async function submitLogin(email, password) {
-    const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    });
-    
-    const result = await response.json();
-    if (result.success) {
-        console.log("Logged in successfully as:", result.user);
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
 
@@ -28,11 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = document.getElementById('login-submit-btn');
 
             // Provide visual loading state feedback
+            const originalBtnText = submitBtn.textContent;
             submitBtn.textContent = "Connecting...";
             submitBtn.disabled = true;
 
             try {
-                // 2. This line links your HTML frontend directly to /functions/api/login.js or Worker endpoint
+                // 2. Links HTML frontend directly to /functions/api/login.js
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -45,10 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 3. Handle the response coming back from the server
                 if (response.ok && data.success) {
-                    alert(`Welcome back, ${data.user}!`);
-                    // Hide login modal and update dashboard view here if applicable
+                    alert(`Welcome back, ${data.username}!`);
+                    
+                    // Store session tokens for authenticated actions (like private uploads)
+                    localStorage.setItem('supabase_token', data.token);
+                    localStorage.setItem('user_email', data.user);
+                    
+                    // Dynamic layout updates or closing auth modal could occur here
+                    if (typeof switchActiveWorkspaceView === "function") {
+                        const viewHome = document.getElementById("view-home");
+                        switchActiveWorkspaceView(viewHome);
+                    }
                 } else {
-                    // Show error message returned by backend api
+                    // Show error message returned by backend API
                     alert(`Error: ${data.error || 'Invalid login details.'}`);
                 }
 
@@ -56,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Network connectivity issue:", error);
                 alert("Could not reach the authentication servers. Try again later.");
             } finally {
-                // Reset button state
-                submitBtn.textContent = "Sign In";
+                // Reset button state safely
+                submitBtn.textContent = originalBtnText;
                 submitBtn.disabled = false;
             }
         });
