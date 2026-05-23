@@ -1,3 +1,8 @@
+// Ensure this is initialized with your credentials before the DOM event fires
+const supabaseUrl = 'https://xqihscjovjtgvvhbvcfn.supabase.co';
+const supabaseKey = 'sb_publishable_vNYWCu6wtVZEOea1im3q5Q_mmzd6ka6';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
 document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // 1. DATA CORE & PERSISTENT STATES
@@ -42,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeManageModal = document.getElementById("close-manage-modal");
     const userUploadsList = document.getElementById("user-uploads-list");
 
-    // Cloudflare File Form Stream Interfaces
+    // Unified File Form Stream Interfaces
     const uploadForm = document.getElementById("uploadForm");
     const audioFileInput = document.getElementById("audioFile");
     const dropZone = document.getElementById("dropZone");
@@ -68,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewPanels = [viewHome, viewBrowse, viewPlaylists, viewUpload, viewSettings];
 
     // ==========================================
-    // 3. CORE CORE WORKSPACE / VIEW CONTROLLER
+    // 3. CORE WORKSPACE / VIEW CONTROLLER
     // ==========================================
     function switchActiveWorkspaceView(targetViewPanel) {
         viewPanels.forEach(panel => {
@@ -205,10 +210,23 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
 
             const deleteButton = itemRow.querySelector(".delete-upload-btn");
-            deleteButton.addEventListener("click", () => {
-                if (confirm(`Are you sure you want to delete "${track.title}"?`)) {
+            deleteButton.addEventListener("click", async () => {
+                if (confirm(`Are you sure you want to delete "${track.title}" from storage?`)) {
+                    // Extract filename out of track profile if tracking public paths
+                    const fileName = track.storagePath || track.id;
+                    
+                    // Delete from Supabase Storage Bucket
+                    const { error } = await supabase.storage
+                        .from('audio-files')
+                        .remove([fileName]);
+
+                    if (error) {
+                        alert(`Failed deleting target track: ${error.message}`);
+                        return;
+                    }
+
                     uploadedTracks = uploadedTracks.filter(t => t.id !== track.id);
-                    console.log(`Removed entry: ${track.id}`);
+                    console.log(`Removed storage asset entry: ${track.id}`);
                     renderUploadedTracks(); 
                 }
             });
@@ -218,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // 6. CLOUDFLARE R2 DATA PIPE TRANSMITTER
+    // 6. SUPABASE STORAGE DATA PIPE TRANSMITTER
     // ==========================================
     if (dropZone) dropZone.addEventListener("click", () => audioFileInput.click());
 
@@ -272,73 +290,60 @@ document.addEventListener("DOMContentLoaded", () => {
             const artist = document.getElementById("trackArtist").value;
             
             progressBarContainer.classList.remove("hidden");
-            progressBar.style.width = "0%";
+            progressBar.style.width = "10%"; // Initial visual loading feedback
 
             try {
-                console.log("🔒 Requesting presigned secure URL signature from Node.js backend...");
-                const response = await fetch("http://localhost:3000/api/get-presigned-url", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        filename: selectedFile.name,
-                        contentType: selectedFile.type,
-                        title: title,
-                        artist: artist
-                    })
+                console.log("🔒 Initiating pipeline transfer to Supabase Storage Bucket...");
+                
+                // Formulate a distinct storage name string to avoid naming conflicts
+                const fileExtension = selectedFile.name.split('.').pop();
+                const uniqueStorageName = `track-${Date.now()}.${fileExtension}`;
+
+                // 1. Core Upload Call to Supabase bucket
+                const { data, error } = await supabase.storage
+                    .from('audio-files') // Make sure this matches your exact bucket name!
+                    .upload(uniqueStorageName, selectedFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (error) throw error;
+                
+                progressBar.style.width = "70%"; // Complete transfer feedback
+
+                // 2. Extract public URL delivery path 
+                const { data: publicUrlData } = supabase.storage
+                    .from('audio-files')
+                    .getPublicUrl(uniqueStorageName);
+
+                const permanentPublicUrl = publicUrlData.publicUrl;
+                progressBar.style.width = "100%";
+                
+                console.log(`✅ File pipeline complete. Public streaming address generated: ${permanentPublicUrl}`);
+
+                // Update runtime arrays tracking tracks
+                uploadedTracks.push({
+                    id: `up-${Date.now()}`,
+                    title: title,
+                    artist: artist,
+                    storagePath: uniqueStorageName, // Saved so we can delete it later
+                    url: permanentPublicUrl
                 });
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || "Failed token generation.");
+                alert("Track successfully uploaded and published to Supabase Storage!");
+                
+                // Hard reset form interfaces back to neutral defaults
+                uploadForm.reset();
+                dropZoneText.innerText = "Click or drag an MP3 file here";
+                dropZoneText.style.color = "#b3b3b3";
+                progressBarContainer.classList.add("hidden");
+                selectedFile = null;
 
-                const uploadUrl = data.uploadUrl;
-                const permanentPublicUrl = data.publicTrackUrl;
-
-                console.log("🚀 Token generated successfully. Direct upload payload transfer underway...");
-
-                const xhr = new XMLHttpRequest();
-                xhr.open("PUT", uploadUrl, true);
-                xhr.setRequestHeader("Content-Type", selectedFile.type);
-
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percentComplete = (event.loaded / event.total) * 100;
-                        progressBar.style.width = `${percentComplete}%`;
-                        console.log(`📡 Upload progress status: ${percentComplete.toFixed(1)}%`);
-                    }
-                };
-
-                xhr.onload = () => {
-                    if (xhr.status === 200 || xhr.status === 201) {
-                        console.log(`✅ Binary storage complete! Public link generated: ${permanentPublicUrl}`);
-                        
-                        // Array mutation execution occurs instantly here inside the unified context block scope safely
-                        uploadedTracks.push({
-                            id: `up-${Date.now()}`,
-                            title: title,
-                            artist: artist
-                        });
-
-                        alert("Track successfully uploaded and published to Cloudflare R2!");
-                        
-                        // Hard reset form interfaces back to neutral defaults
-                        uploadForm.reset();
-                        dropZoneText.innerText = "Click or drag an MP3 file here";
-                        dropZoneText.style.color = "#b3b3b3";
-                        progressBarContainer.classList.add("hidden");
-                        selectedFile = null;
-
-                        // Re-render data tables automatically if modal window dashboard interface remains open
-                        renderUploadedTracks();
-                    } else {
-                        alert("Failed moving audio asset to cloud buckets.");
-                    }
-                };
-
-                xhr.onerror = () => alert("Network communication breakdown across data layers.");
-                xhr.send(selectedFile);
+                // Re-render data tables automatically if modal tracking is open
+                renderUploadedTracks();
 
             } catch (err) {
-                console.error("Critical Cloud Sync Interruption: ", err);
+                console.error("Critical Storage Sync Interruption: ", err);
                 alert(`Upload error context: ${err.message}`);
                 progressBarContainer.classList.add("hidden");
             }
