@@ -251,19 +251,29 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
     }
 
     // Account State Sync Subsystems
+    // Inside js/main.js authentication processing area
     async function runAuthenticationRequest(endpoint, payload) {
-        const response = await fetch(`/api/${endpoint}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Authentication structural failure.");
+        try {
+            const response = await fetch(`/api/${endpoint}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
         
-        localStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(data));
-        updateProfileInterfaceElements();
-        closeAuthModal();
-        showAlert(`Session assigned successfully. Welcome ${data.username}!`);
+            if (!response.ok) {
+                throw new Error(data.error || "Authentication execution stopped.");
+            }
+        
+            // This line caches user tokens securely in browser memory loops
+            localStorage.setItem("beatz_flow_auth", JSON.stringify(data));
+        
+            updateProfileInterfaceElements();
+            closeAuthModal();
+            showAlert(`Welcome to Beatz_Flow, ${data.username}!`);
+        } catch (err) {
+            showAlert(err.message);
+        }
     }
 
     function updateProfileInterfaceElements() {

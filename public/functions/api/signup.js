@@ -14,30 +14,48 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Server missing Supabase credentials." });
         }
 
-        // 1. Register the user profile
+        // 1. Provision user profile inside Supabase Auth system
         const signUpResponse = await fetch(`${supabaseUrl}/auth/v1/signup`, {
             method: 'POST',
-            headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, options: { data: { display_name: username } } })
+            headers: { 
+                'apikey': supabaseKey, 
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ 
+                email, 
+                password, 
+                options: { data: { display_name: username } } 
+            })
         });
+        
         const signUpData = await signUpResponse.json();
         if (!signUpResponse.ok || signUpData.error) {
-            return res.status(signUpResponse.status).json({ error: signUpData.error?.message || "Registration failed." });
+            return res.status(signUpResponse.status || 400).json({ error: signUpData.error?.message || "Registration failed." });
         }
 
-        // 2. Instantly sign in to create a session token
-        const loginResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+        // 2. Exchange credentials for an access token immediately so they stay logged in
+        const tokenResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
             method: 'POST',
-            headers: { 'apikey': supabaseKey, 'Content-Type': 'application/json' },
+            headers: { 
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ email, password })
         });
-        const loginData = await loginResponse.json();
 
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok || tokenData.error) {
+            return res.status(tokenResponse.status || 400).json({ error: tokenData.error?.message || "Automatic login failed." });
+        }
+
+        // 3. Hand back token payload back to front-end browser context
         return res.status(200).json({
             success: true,
-            user: loginData.user?.email,
-            token: loginData.access_token,
-            username: loginData.user?.user_metadata?.display_name || username
+            user: tokenData.user?.email,
+            token: tokenData.access_token,
+            username: tokenData.user?.user_metadata?.display_name || username
         });
     } catch (err) {
         return res.status(500).json({ error: "Server registration error: " + err.message });
