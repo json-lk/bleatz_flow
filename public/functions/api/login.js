@@ -1,27 +1,24 @@
-// functions/api/login.js
+// api/login.js
 
-export async function onRequestPost(context) {
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
     try {
-        const { email, password } = await context.request.json();
+        const { email, password } = req.body;
 
         if (!email || !password) {
-            return new Response(
-                JSON.stringify({ error: "Email and password are required." }), 
-                { status: 400, headers: { "Content-Type": "application/json" } }
-            );
+            return res.status(400).json({ error: "Email and password are required." });
         }
 
-        const supabaseUrl = context.env.SUPABASE_URL;
-        const supabaseKey = context.env.SUPABASE_KEY;
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_KEY;
 
         if (!supabaseUrl || !supabaseKey) {
-            return new Response(
-                JSON.stringify({ error: "Server configuration missing: Supabase credentials not set." }), 
-                { status: 500, headers: { "Content-Type": "application/json" } }
-            );
+            return res.status(500).json({ error: "Server missing Supabase credentials." });
         }
 
-        // Verification step: Exchange credentials for a Supabase Session token
         const loginResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
             method: 'POST',
             headers: {
@@ -34,26 +31,18 @@ export async function onRequestPost(context) {
         const loginData = await loginResponse.json();
 
         if (!loginResponse.ok || loginData.error) {
-            return new Response(
-                JSON.stringify({ error: loginData.error?.message || "Invalid login details." }), 
-                { status: loginResponse.status, headers: { "Content-Type": "application/json" } }
-            );
+            return res.status(loginResponse.status).json({ 
+                error: loginData.error?.message || "Invalid login details." 
+            });
         }
 
-        // Return token and user info to frontend browser client
-        return new Response(
-            JSON.stringify({ 
-                success: true, 
-                user: loginData.user.email,
-                token: loginData.access_token,
-                username: loginData.user.user_metadata?.display_name || "User"
-            }), 
-            { status: 200, headers: { "Content-Type": "application/json" } }
-        );
+        return res.status(200).json({ 
+            success: true, 
+            user: loginData.user.email,
+            token: loginData.access_token,
+            username: loginData.user.user_metadata?.display_name || "User"
+        });
     } catch (err) {
-        return new Response(
-            JSON.stringify({ error: "Authentication system error: " + err.message }), 
-            { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+        return res.status(500).json({ error: "Authentication system error: " + err.message });
     }
 }
