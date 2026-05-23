@@ -1,8 +1,3 @@
-// Ensure this is initialized with your credentials before the DOM event fires
-const supabaseUrl = 'https://xqihscjovjtgvvhbvcfn.supabase.co';
-const supabaseKey = 'sb_publishable_vNYWCu6wtVZEOea1im3q5Q_mmzd6ka6';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
 document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // 1. DATA CORE & PERSISTENT STATES
@@ -15,11 +10,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // 2. CENTRAL SELECTORS & DOM NODE MAPS
     // ==========================================
-    // Navigation Triggers
+    // Navigation & Global UI Triggers
     const btnListen = document.getElementById("listen");
     const btnContribute = document.getElementById("contribute");
     const btnSettings = document.getElementById("settings");
     const btnQuicky = document.getElementById("quicky");
+    const btnAccount = document.getElementById("account");
+    
+    // Auth Trigger Modals & Sub-elements
+    const btnAuthTrigger = document.getElementById("auth-trigger-btn"); // Your Auth Trigger Button
+    const authModal = document.getElementById("auth-modal"); // Container/Overlay for login/signup forms
+    const closeAuthModal = document.getElementById("close-auth-modal"); // Close button inside auth container
+
+    // Tab Buttons & View Containers for Authentication Swapping
+    const tabLogin = document.getElementById("tab-login");
+    const tabSignup = document.getElementById("tab-signup");
+    const containerLoginForm = document.getElementById("login-form-container");
+    const containerSignupForm = document.getElementById("signup-form-container");
 
     // Drawer Containers
     const secondLvContainer = document.getElementById("second-lv"); 
@@ -35,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewPlaylists = document.getElementById("view-playlists");
     const viewUpload = document.getElementById("view-upload");
     const viewSettings = document.getElementById("view-settings");
+    const viewAccount = document.getElementById("view-account"); 
 
     // Internal Submenu Navigation Selection Anchors
     const btnMyMusic = document.getElementById("my-music");
@@ -70,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { trigger: btnQuicky, target: menuQuicky }
     ];
 
-    const viewPanels = [viewHome, viewBrowse, viewPlaylists, viewUpload, viewSettings];
+    const viewPanels = [viewHome, viewBrowse, viewPlaylists, viewUpload, viewSettings, viewAccount];
 
     // ==========================================
     // 3. CORE WORKSPACE / VIEW CONTROLLER
@@ -123,9 +131,80 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnMyMusic) btnMyMusic.addEventListener("click", () => switchActiveWorkspaceView(viewHome));
     if (btnTopCharts) btnTopCharts.addEventListener("click", () => switchActiveWorkspaceView(viewBrowse));
     if (btnGeneralSettings) btnGeneralSettings.addEventListener("click", () => switchActiveWorkspaceView(viewSettings));
-    
-    // Ensure the main Contribute action switches straight to the upload view form block
     if (btnContribute) btnContribute.addEventListener("click", () => switchActiveWorkspaceView(viewUpload));
+
+    // Account Button Navigation Link
+    if (btnAccount) {
+        btnAccount.addEventListener("click", () => {
+            if (viewAccount) {
+                switchActiveWorkspaceView(viewAccount);
+            } else {
+                switchActiveWorkspaceView(viewSettings);
+            }
+            toggleSecondLevelView(null);
+        });
+    }
+
+    // ==========================================
+    // 3.5 AUTH TRANSACTIONS MODAL OVERLAY ENGINE
+    // ==========================================
+    if (btnAuthTrigger) {
+        btnAuthTrigger.addEventListener("click", () => {
+            if (authModal) {
+                authModal.classList.remove("hidden");
+                // Default context: activate the Login tab automatically when modal triggers open
+                showLoginTab();
+                console.log("🔐 Authentication overlay displayed via #auth-trigger-btn.");
+            } else {
+                console.warn("Element #auth-modal missing from DOM structure.");
+            }
+        });
+    }
+
+    if (closeAuthModal) {
+        closeAuthModal.addEventListener("click", () => {
+            if (authModal) authModal.classList.add("hidden");
+        });
+    }
+
+    if (authModal) {
+        authModal.addEventListener("click", (e) => {
+            if (e.target === authModal) {
+                authModal.classList.add("hidden");
+            }
+        });
+    }
+
+    // Helper Action: Switch active visible layers to Login Form view layout
+    function showLoginTab() {
+        if (authModal) authModal.setAttribute("data-view", "login");
+        
+        if (tabLogin) tabLogin.classList.add("active");
+        if (tabSignup) tabSignup.classList.remove("active");
+        console.log("🔄 Context swapped to: Login View");
+    }
+
+    // Helper Action: Switch active visible layers to Signup Form view layout
+    function showSignupTab() {
+        if (authModal) authModal.setAttribute("data-view", "signup");
+        
+        if (tabSignup) tabSignup.classList.add("active");
+        if (tabLogin) tabLogin.classList.remove("active");
+        console.log("🔄 Context swapped to: Signup View");
+    }
+
+    // Attach click listeners to the specific top tab buttons
+    if (tabLogin) {
+        tabLogin.addEventListener("click", () => {
+            showLoginTab();
+        });
+    }
+
+    if (tabSignup) {
+        tabSignup.addEventListener("click", () => {
+            showSignupTab();
+        });
+    }
 
     // ==========================================
     // 4. QUICK ACCESS TRACK MANAGEMENT LOGIC
@@ -226,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     uploadedTracks = uploadedTracks.filter(t => t.id !== track.id);
-                    console.log(`Removed storage asset entry: ${track.id}`);
+                    console.log(`Removed entry: ${track.id}`);
                     renderUploadedTracks(); 
                 }
             });
@@ -293,57 +372,70 @@ document.addEventListener("DOMContentLoaded", () => {
             progressBar.style.width = "10%"; // Initial visual loading feedback
 
             try {
-                console.log("🔒 Initiating pipeline transfer to Supabase Storage Bucket...");
-                
-                // Formulate a distinct storage name string to avoid naming conflicts
-                const fileExtension = selectedFile.name.split('.').pop();
-                const uniqueStorageName = `track-${Date.now()}.${fileExtension}`;
-
-                // 1. Core Upload Call to Supabase bucket
-                const { data, error } = await supabase.storage
-                    .from('audio-files') // Make sure this matches your exact bucket name!
-                    .upload(uniqueStorageName, selectedFile, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (error) throw error;
-                
-                progressBar.style.width = "70%"; // Complete transfer feedback
-
-                // 2. Extract public URL delivery path 
-                const { data: publicUrlData } = supabase.storage
-                    .from('audio-files')
-                    .getPublicUrl(uniqueStorageName);
-
-                const permanentPublicUrl = publicUrlData.publicUrl;
-                progressBar.style.width = "100%";
-                
-                console.log(`✅ File pipeline complete. Public streaming address generated: ${permanentPublicUrl}`);
-
-                // Update runtime arrays tracking tracks
-                uploadedTracks.push({
-                    id: `up-${Date.now()}`,
-                    title: title,
-                    artist: artist,
-                    storagePath: uniqueStorageName, // Saved so we can delete it later
-                    url: permanentPublicUrl
+                console.log("🔒 Requesting presigned secure URL signature from Node.js backend...");
+                const response = await fetch("http://localhost:3000/api/get-presigned-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: selectedFile.name,
+                        contentType: selectedFile.type,
+                        title: title,
+                        artist: artist
+                    })
                 });
 
-                alert("Track successfully uploaded and published to Supabase Storage!");
-                
-                // Hard reset form interfaces back to neutral defaults
-                uploadForm.reset();
-                dropZoneText.innerText = "Click or drag an MP3 file here";
-                dropZoneText.style.color = "#b3b3b3";
-                progressBarContainer.classList.add("hidden");
-                selectedFile = null;
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Failed token generation.");
 
-                // Re-render data tables automatically if modal tracking is open
-                renderUploadedTracks();
+                const uploadUrl = data.uploadUrl;
+                const permanentPublicUrl = data.publicTrackUrl;
+
+                console.log("🚀 Token generated successfully. Direct upload payload transfer underway...");
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("PUT", uploadUrl, true);
+                xhr.setRequestHeader("Content-Type", selectedFile.type);
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = (event.loaded / event.total) * 100;
+                        progressBar.style.width = `${percentComplete}%`;
+                        console.log(`📡 Upload progress status: ${percentComplete.toFixed(1)}%`);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        console.log(`✅ Binary storage complete! Public link generated: ${permanentPublicUrl}`);
+                        
+                        // Array mutation execution occurs instantly here inside the unified context block scope safely
+                        uploadedTracks.push({
+                            id: `up-${Date.now()}`,
+                            title: title,
+                            artist: artist
+                        });
+
+                        alert("Track successfully uploaded and published to Cloudflare R2!");
+                        
+                        // Hard reset form interfaces back to neutral defaults
+                        uploadForm.reset();
+                        dropZoneText.innerText = "Click or drag an MP3 file here";
+                        dropZoneText.style.color = "#b3b3b3";
+                        progressBarContainer.classList.add("hidden");
+                        selectedFile = null;
+
+                        // Re-render data tables automatically if modal window dashboard interface remains open
+                        renderUploadedTracks();
+                    } else {
+                        alert("Failed moving audio asset to cloud buckets.");
+                    }
+                };
+
+                xhr.onerror = () => alert("Network communication breakdown across data layers.");
+                xhr.send(selectedFile);
 
             } catch (err) {
-                console.error("Critical Storage Sync Interruption: ", err);
+                console.error("Critical Cloud Sync Interruption: ", err);
                 alert(`Upload error context: ${err.message}`);
                 progressBarContainer.classList.add("hidden");
             }
@@ -362,11 +454,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isPlaying) {
             if (trackIcon) trackIcon.className = "fa-solid fa-circle-pause";
             if (masterIcon) masterIcon.className = "fa-solid fa-circle-pause";
-            console.log("🔊 Audio Context Started: Playing 'Midnight City'...");
         } else {
             if (trackIcon) trackIcon.className = "fa-solid fa-circle-play";
             if (masterIcon) masterIcon.className = "fa-solid fa-circle-play";
-            console.log("⏸️ Audio Context Paused.");
         }
     }
 
@@ -381,10 +471,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (icon.classList.contains("fa-solid")) {
                 heartBtn.style.color = "#1db954";
-                console.log("❤️ Added to library favorites.");
             } else {
                 heartBtn.style.color = "#b3b3b3";
-                console.log("💔 Removed from library favorites.");
             }
         });
     }
@@ -403,7 +491,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Auxiliary Utility Secondary Triggers
     const shuffleBtn = document.querySelector(".fa-shuffle")?.parentElement;
     const repeatBtn = document.querySelector(".fa-repeat")?.parentElement;
     const skipBackBtn = document.querySelector(".fa-backward-step")?.parentElement;
@@ -423,9 +510,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (skipBackBtn) skipBackBtn.addEventListener("click", () => console.log("⏮️ Re-winding track."));
+    if (skipBackBtn) skipBackBtn.addEventListener("click", () => console.log("⏮️ Re-winding."));
     if (skipForwardBtn) skipForwardBtn.addEventListener("click", () => console.log("⏭️ Skipping forward."));
     
-    // Initial run to clear default placeholders
     buildQuickyAddables();
 });
