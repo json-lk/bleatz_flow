@@ -252,6 +252,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
 
     // Account State Sync Subsystems
     // Inside js/main.js authentication processing area
+    // Inside js/main.js
     async function runAuthenticationRequest(endpoint, payload) {
         try {
             const response = await fetch(`/api/${endpoint}`, {
@@ -259,22 +260,38 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-            const data = await response.json();
-        
-            if (!response.ok) {
-                throw new Error(data.error || "Authentication execution stopped.");
+
+            // Read raw text first to inspect if Vercel returned an HTML page
+            const rawText = await response.text();
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                console.error("Server returned non-JSON data:", rawText);
+                throw new Error(`Server returned an invalid HTML status (${response.status}). Check Vercel deployment logs.`);
             }
-        
-            // This line caches user tokens securely in browser memory loops
+
+            if (!response.ok) {
+                throw new Error(data.error || "Authentication operation halted.");
+            }
+
+            if (data.fallbackSignInRequired) {
+                showAlert(`Account created for ${data.username}! Please toggle to the Log In tab to continue.`);
+                showLoginTab();
+                return;
+            }
+
+            // Persist session token safely in local cache loop
             localStorage.setItem("beatz_flow_auth", JSON.stringify(data));
         
             updateProfileInterfaceElements();
             closeAuthModal();
-            showAlert(`Welcome to Beatz_Flow, ${data.username}!`);
+            showAlert(`Successfully authenticated. Welcome back, ${data.username}!`);
         } catch (err) {
             showAlert(err.message);
         }
     }
+
 
     function updateProfileInterfaceElements() {
         const raw = localStorage.getItem(STORAGE_KEYS.auth);

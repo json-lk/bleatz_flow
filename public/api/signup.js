@@ -11,10 +11,10 @@ export default async function handler(req, res) {
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
         if (!supabaseUrl || !supabaseKey) {
-            return res.status(500).json({ error: "Server missing Supabase credentials." });
+            return res.status(500).json({ error: "Server missing environment variables." });
         }
 
-        // 1. Provision user profile inside Supabase Auth system
+        // 1. Register User Profile
         const signUpResponse = await fetch(`${supabaseUrl}/auth/v1/signup`, {
             method: 'POST',
             headers: { 
@@ -31,26 +31,33 @@ export default async function handler(req, res) {
         
         const signUpData = await signUpResponse.json();
         if (!signUpResponse.ok || signUpData.error) {
-            return res.status(signUpResponse.status || 400).json({ error: signUpData.error?.message || "Registration failed." });
+            return res.status(400).json({ error: signUpData.error?.message || "Registration rejected." });
         }
 
-        // 2. Exchange credentials for an access token immediately so they stay logged in
+        // 2. Immediate Token Exchange (URL-Encoded Format to prevent Supabase API failure)
         const tokenResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
             method: 'POST',
             headers: { 
                 'apikey': supabaseKey,
-                'Authorization': `Bearer ${supabaseKey}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({ email, password })
+            body: new URLSearchParams({
+                username: email,
+                password: password,
+                grant_type: 'password'
+            }).toString()
         });
 
         const tokenData = await tokenResponse.json();
         if (!tokenResponse.ok || tokenData.error) {
-            return res.status(tokenResponse.status || 400).json({ error: tokenData.error?.message || "Automatic login failed." });
+            // Fallback: Account created safely, but user needs to use the manual sign-in tab
+            return res.status(200).json({
+                success: true,
+                fallbackSignInRequired: true,
+                username: username
+            });
         }
 
-        // 3. Hand back token payload back to front-end browser context
         return res.status(200).json({
             success: true,
             user: tokenData.user?.email,
@@ -58,6 +65,6 @@ export default async function handler(req, res) {
             username: tokenData.user?.user_metadata?.display_name || username
         });
     } catch (err) {
-        return res.status(500).json({ error: "Server registration error: " + err.message });
+        return res.status(500).json({ error: "Server Registration Thread Failure: " + err.message });
     }
 }
