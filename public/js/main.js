@@ -102,6 +102,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         
         // Synchronize row button icons
         document.querySelectorAll(".row-play-trigger").forEach((btn, idx) => {
+            idx = parseInt(btn.getAttribute("data-index"));
             btn.innerHTML = `<i class="${idx === activeTrackIndex && isPlaying ? 'fa-solid fa-circle-pause' : 'fa-solid fa-circle-play'}"></i>`;
         });
     }
@@ -113,8 +114,8 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             const response = await fetch(target);
             const tracks = await response.json();
             
-            currentActiveTracklist = tracks;
-            renderDynamicTrackRows(tracks);
+            currentActiveTracklist = Array.isArray(tracks) ? tracks : [];
+            renderDynamicTrackRows(currentActiveTracklist);
         } catch (err) {
             console.error("Failed fetching database maps: ", err);
         }
@@ -123,7 +124,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
     function renderDynamicTrackRows(tracks) {
         if (!elements.songDisplaySection) return;
         
-        // Retain original header structure
         elements.songDisplaySection.innerHTML = `<h2>Catalog Library Collections</h2>`;
         
         if (tracks.length === 0) {
@@ -187,7 +187,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     });
 
-    // Handle Upload Pipelines (File Conversion To Base64 Elements)
+    // Handle Upload Pipelines
     if (elements.uploadForm) {
         elements.uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -260,13 +260,11 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                 body: JSON.stringify(payload)
             });
 
-            // Read raw text first to inspect if Vercel returned an HTML page
             const rawText = await response.text();
             let data;
             try {
                 data = JSON.parse(rawText);
             } catch (e) {
-                console.error("Server returned non-JSON data:", rawText);
                 throw new Error(`Server returned an invalid HTML status (${response.status}). Check Vercel deployment logs.`);
             }
 
@@ -274,15 +272,13 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                 throw new Error(data.error || "Authentication operation halted.");
             }
 
-            // Corrected Fallback: Return early to prevent token caching bugs if sign-in is pending
             if (data.fallbackSignInRequired) {
                 showAlert(`Account created for ${data.username}! Please toggle to the Log In tab to continue.`);
                 showLoginTab();
                 return; 
             }
 
-            // Persist session token safely in local cache loop
-            localStorage.setItem("beatz_flow_auth", JSON.stringify(data));
+            localStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(data));
         
             updateProfileInterfaceElements();
             closeAuthModal();
@@ -340,8 +336,14 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
     if (elements.btnGeneralSettings) elements.btnGeneralSettings.addEventListener("click", () => { switchActiveWorkspaceView(elements.viewSettings); toggleSecondLevelView(null); });
     if (elements.btnAuthTrigger) elements.btnAuthTrigger.addEventListener("click", () => { elements.authModal?.classList.remove("hidden"); showLoginTab(); });
     if (elements.closeAuthModal) elements.closeAuthModal.addEventListener("click", closeAuthModal);
+    
     if (elements.tabLogin) elements.tabLogin.addEventListener("click", showLoginTab);
-    if (elements.tabSignup) elements.tabSignup.addEventListener("click", () => { elements.authModal?.setAttribute("data-view", "signup"); elements.tabSignup.classList.add("active"); elements.tabLogin.classList.remove("active"); });
+    if (elements.tabSignup) elements.tabSignup.addEventListener("click", () => { 
+        elements.authModal?.setAttribute("data-view", "signup"); 
+        elements.tabSignup.classList.add("active"); 
+        elements.tabLogin.classList.remove("active"); 
+    });
+    
     if (elements.mainPlayBtn) elements.mainPlayBtn.addEventListener("click", togglePlayback);
 
     if (elements.dropZone && elements.audioFileInput) {
@@ -354,7 +356,11 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    function showLoginTab() { elements.authModal?.setAttribute("data-view", "login"); elements.tabLogin?.classList.add("active"); elements.tabSignup?.classList.remove("active"); }
+    function showLoginTab() { 
+        elements.authModal?.setAttribute("data-view", "login"); 
+        elements.tabLogin?.classList.add("active"); 
+        elements.tabSignup?.classList.remove("active"); 
+    }
 
     // Bootstrap Initialization 
     updateProfileInterfaceElements();

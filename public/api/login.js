@@ -1,5 +1,3 @@
-// api/login.js
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -31,18 +29,18 @@ export default async function handler(req, res) {
         const loginData = await loginResponse.json();
 
         if (!loginResponse.ok || loginData.error) {
-            return res.status(loginResponse.status).json({ 
+            return res.status(loginResponse.status || 400).json({ 
                 error: loginData.error?.message || "Invalid login details." 
             });
         }
 
         return res.status(200).json({ 
             success: true, 
-            user: loginData.user.email,
+            user: loginData.user?.email,
             token: loginData.access_token,
-            username: loginData.user.user_metadata?.display_name || "User"
+            username: loginData.user?.user_metadata?.display_name || loginData.user?.email.split('@')[0]
         });
     } catch (err) {
-        return res.status(500).json({ error: "Authentication system error: " + err.message });
+        return res.status(500).json({ error: "Server Login Thread Failure: " + err.message });
     }
 }

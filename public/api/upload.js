@@ -1,4 +1,3 @@
-// api/upload.js
 export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
 
 export default async function handler(req, res) {
@@ -13,6 +12,10 @@ export default async function handler(req, res) {
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
         
+        if (!supabaseUrl || !supabaseKey) {
+            return res.status(500).json({ error: "Server credentials unmapped." });
+        }
+
         // Clean paths to prevent collision bugs
         const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
         const rawBuffer = Buffer.from(fileData, 'base64');
@@ -30,8 +33,12 @@ export default async function handler(req, res) {
         });
 
         if (!storageRes.ok) {
-            const errLog = await storageRes.json().catch(() => ({}));
-            return res.status(400).json({ error: errLog.message || "Failed posting binary object to storage." });
+            let errMsg = "Failed posting binary object to storage.";
+            try {
+                const errLog = await storageRes.json();
+                if (errLog.message) errMsg = errLog.message;
+            } catch (e) {}
+            return res.status(400).json({ error: errMsg });
         }
 
         // 2. Generate accessible streaming link
@@ -50,8 +57,8 @@ export default async function handler(req, res) {
         });
 
         const dbData = await dbRes.json();
-        return res.status(201).json({ success: true, track: dbData[0] });
+        return res.status(201).json({ success: true, track: Array.isArray(dbData) ? dbData[0] : dbData });
     } catch (err) {
-        return res.status(500).json({ error: "Internal transmission block error: " + err.message });
+        return res.status(500).json({ error: "Internal processing crash: " + err.message });
     }
 }
