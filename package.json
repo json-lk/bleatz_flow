@@ -18,10 +18,7 @@
   "dependencies": {
     "buffer": "^6.0.3"
   },
-  "devDependencies": {
-    "vercel": "^39.0.0"
-  },
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}
