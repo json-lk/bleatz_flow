@@ -28,7 +28,7 @@ export default async function handler(req, res) {
             
             if (!response.ok) {
                 console.error("Postgres Metadata Entry Rejected:", data);
-                return res.status(400).json({ error: data.message || "Database rejected metadata profile row insertion." });
+                return res.status(400).json({ error: data.message || "Don't worry, the DB rejected something." });
             }
 
             return res.status(201).json({ success: true, track: Array.isArray(data) ? data[0] : data });

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         
         const signUpData = await signUpResponse.json();
         if (!signUpResponse.ok || signUpData.error) {
-            return res.status(400).json({ error: signUpData.error?.message || "Registration rejected." });
+            return res.status(400).json({ error: signUpData.error?.message || "Registration rejected. It might be because of your weak password." });
         }
 
         const tokenResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {

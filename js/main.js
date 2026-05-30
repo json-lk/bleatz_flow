@@ -86,7 +86,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         activeAudioEngine.src = track.audio_url;
         activeAudioEngine.play()
             .then(() => updatePlaybackUi(true))
-            .catch((e) => showAlert("Playback streaming block caught: " + e.message));
+            .catch((e) => showAlert("Playback interrupted: " + e.message));
 
         if (elements.footerTitle) elements.footerTitle.textContent = track.title || "Unknown Title";
         if (elements.footerArtist) elements.footerArtist.textContent = track.artist || "Unknown Artist";
@@ -290,7 +290,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
     if (elements.uploadForm) {
         elements.uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (!selectedFilePayload) return showAlert("Please choose an operational file payload.");
+            if (!selectedFilePayload) return showAlert("Please choose an operational file.");
 
             const title = document.getElementById("trackTitle")?.value.trim();
             const artist = document.getElementById("trackArtist")?.value.trim();
@@ -342,7 +342,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                 }
 
                 if (elements.progressBar) elements.progressBar.style.width = "100%";
-                showAlert("Binary distributed globally to Edge storage network rings!");
+                showAlert("Upload complete!");
                 
                 elements.uploadForm.reset();
                 selectedFilePayload = null;
