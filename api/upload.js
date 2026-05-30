@@ -7,18 +7,18 @@ export default async function handler(req, res) {
     try {
         const { title, artist, fileData, fileName, fileType } = req.body;
         if (!fileData || !title || !artist) {
-            return res.status(400).json({ error: \"Missing required upload parameters.\" });
+            return res.status(400).json({ error:"Missing required upload parameters." });
         }
 
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
         
         if (!supabaseUrl || !supabaseKey) {
-            return res.status(500).json({ error: \"Server credentials unmapped.\" });
+            return res.status(500).json({ error: "Server credentials unmapped." });
         }
 
         // Clean paths to prevent collision bugs
-        const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, \"_\")}` block;
+        const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
         const rawBuffer = Buffer.from(fileData, 'base64');
 
         // 1. Post Binary file payload to Supabase Object Storage

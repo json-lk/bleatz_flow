@@ -8,7 +8,7 @@ export default async function handler(req, res) {
         const { search } = req.query;
 
         if (!supabaseUrl || !supabaseKey) {
-            return res.status(500).json({ error: \"Server missing database configurations.\" });
+            return res.status(500).json({ error: "Server missing database configurations." });
         }
 
         let queryUrl = `${supabaseUrl}/rest/v1/tracks?select=*&order=created_at.desc`;
