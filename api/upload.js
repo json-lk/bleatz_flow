@@ -1,3 +1,4 @@
+// api/upload.js
 export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
 
 export default async function handler(req, res) {
@@ -6,18 +7,18 @@ export default async function handler(req, res) {
     try {
         const { title, artist, fileData, fileName, fileType } = req.body;
         if (!fileData || !title || !artist) {
-            return res.status(400).json({ error: "Missing required upload parameters." });
+            return res.status(400).json({ error: \"Missing required upload parameters.\" });
         }
 
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
         
         if (!supabaseUrl || !supabaseKey) {
-            return res.status(500).json({ error: "Server credentials unmapped." });
+            return res.status(500).json({ error: \"Server credentials unmapped.\" });
         }
 
         // Clean paths to prevent collision bugs
-        const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+        const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, \"_\")}` block;
         const rawBuffer = Buffer.from(fileData, 'base64');
 
         // 1. Post Binary file payload to Supabase Object Storage
@@ -57,8 +58,17 @@ export default async function handler(req, res) {
         });
 
         const dbData = await dbRes.json();
+
+        // FIX: Explicitly verify that the Postgres row entry succeeded
+        if (!dbRes.ok) {
+            console.error("Supabase Database Error Details:", dbData);
+            return res.status(dbRes.status || 400).json({ 
+                error: dbData.message || "The file uploaded to storage, but Row-Level Security (RLS) or database rules blocked saving the song details to the tracks table." 
+            });
+        }
+
         return res.status(201).json({ success: true, track: Array.isArray(dbData) ? dbData[0] : dbData });
     } catch (err) {
-        return res.status(500).json({ error: "Internal processing crash: " + err.message });
+        return res.status(500).json({ error: err.message });
     }
 }
