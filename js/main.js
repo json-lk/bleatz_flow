@@ -1,13 +1,11 @@
 const STORAGE_KEYS = { auth: "beatz_flow_auth" };
 
 (() => {
-    // Hidden Global HTML5 Audio Player Engine Context
     const activeAudioEngine = new Audio();
     let currentActiveTracklist = [];
     let activeTrackIndex = 0;
     let selectedFilePayload = null;
 
-    // Advanced Audio Player Operational Tracking States
     let isShuffleActive = false;
     let isRepeatActive = false;
     let preMuteVolumeLevel = 1.0;
