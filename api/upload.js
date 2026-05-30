@@ -1,73 +1,48 @@
 // api/upload.js
-export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
     try {
-        const { title, artist, fileData, fileName, fileType } = req.body;
-        if (!fileData || !title || !artist) {
-            return res.status(400).json({ error: "Missing required upload parameters." });
+        const { fileName } = req.body;
+        if (!fileName) {
+            return res.status(400).json({ error: "Missing filename specification parameter." });
         }
 
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
         
         if (!supabaseUrl || !supabaseKey) {
-            return res.status(500).json({ error: "Server credentials unmapped." });
+            return res.status(500).json({ error: "Server missing internal API credentials configuration." });
         }
 
-        // Clean paths to prevent collision bugs
+        // Clean filename formatting to avoid filesystem collisions
         const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
-        const rawBuffer = Buffer.from(fileData, 'base64');
 
-        // 1. Post Binary file payload to Supabase Object Storage
-        const storageUrl = `${supabaseUrl}/storage/v1/object/music-files/${uniqueFileName}`;
-        const storageRes = await fetch(storageUrl, {
+        // Ask Supabase to issue a cryptographic presigned upload endpoint token valid for 15 minutes
+        const signUrlEndpoint = `${supabaseUrl}/storage/v1/object/upload/sign/music-files/${uniqueFileName}`;
+        const supabaseRes = await fetch(signUrlEndpoint, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${supabaseKey}`,
                 'apikey': supabaseKey,
-                'Content-Type': fileType || 'audio/mpeg'
+                'Content-Type': 'application/json'
             },
-            body: rawBuffer
+            body: JSON.stringify({ expiresIn: 900 }) // Valid for 900 seconds
         });
 
-        if (!storageRes.ok) {
-            let errMsg = "Failed posting binary object to storage.";
-            try {
-                const errLog = await storageRes.json();
-                if (errLog.message) errMsg = errLog.message;
-            } catch (e) {}
-            return res.status(400).json({ error: errMsg });
+        const signData = await supabaseRes.json();
+
+        if (!supabaseRes.ok) {
+            console.error("Supabase Storage Ticket Error Details:", signData);
+            return res.status(400).json({ error: signData.message || "Failed generating upload signature token." });
         }
 
-        // 2. Generate accessible streaming link
-        const publicAudioUrl = `${supabaseUrl}/storage/v1/object/public/music-files/${uniqueFileName}`;
-
-        // 3. Document audio payload row entry inside relational database
-        const dbRes = await fetch(`${supabaseUrl}/rest/v1/tracks`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${supabaseKey}`,
-                'apikey': supabaseKey,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({ title, artist, audio_url: publicAudioUrl, filename: uniqueFileName })
+        // Send upload endpoint, file token parameters, and public stream destination back to the client
+        return res.status(200).json({
+            uploadUrl: `${supabaseUrl}/storage/v1${signData.url}`,
+            uniqueFileName: uniqueFileName,
+            publicAudioUrl: `${supabaseUrl}/storage/v1/object/public/music-files/${uniqueFileName}`
         });
-
-        const dbData = await dbRes.json();
-
-        // Catch database structural errors or schema cache rejections
-        if (!dbRes.ok) {
-            console.error("Supabase Database Error Details:", dbData);
-            return res.status(dbRes.status || 400).json({ 
-                error: dbData.message || "Database rejected saving track row info data structures." 
-            });
-        }
-
-        return res.status(201).json({ success: true, track: Array.isArray(dbData) ? dbData[0] : dbData });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }

@@ -1,3 +1,4 @@
+// js/main.js
 const STORAGE_KEYS = { auth: "beatz_flow_auth" };
 
 (() => {
@@ -300,7 +301,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Binary Track Upload Pipeline Handling Flow
+    // Binary Track Upload Pipeline Handling Flow (Direct Presigned Upload Loop)
     if (elements.uploadForm) {
         elements.uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -309,58 +310,70 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             const title = document.getElementById("trackTitle")?.value.trim();
             const artist = document.getElementById("trackArtist")?.value.trim();
 
+            if (!title || !artist) return showAlert("Please specify both a track title and artist name.");
+
             if (elements.progressBarContainer) elements.progressBarContainer.classList.remove("hidden");
             if (elements.progressBar) elements.progressBar.style.width = "20%";
 
-            const fileReader = new FileReader();
-            fileReader.readAsDataURL(selectedFilePayload);
-            fileReader.onload = async () => {
-                try {
-                    const rawBase64 = fileReader.result.split(',')[1];
-                    if (elements.progressBar) elements.progressBar.style.width = "50%";
+            try {
+                // 1. Fetch a presigned upload gateway tunnel from the serverless backend
+                const tokenResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileName: selectedFilePayload.name })
+                });
 
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title, artist,
-                            fileData: rawBase64,
-                            fileName: selectedFilePayload.name,
-                            fileType: selectedFilePayload.type
-                        })
-                    });
+                const tokenData = await tokenResponse.json();
+                if (!tokenResponse.ok) throw new Error(tokenData.error || "Bypass gateway initialization failed.");
 
-                    const contentType = response.headers.get("content-type");
-                    if (!contentType || !contentType.includes("application/json")) {
-                        const rawHtmlText = await response.text();
-                        if (response.status === 413 || rawHtmlText.includes("PAYLOAD_TOO_LARGE") || response.status === 504) {
-                            throw new Error("File payload is too large! Vercel limits direct serverless function body size inputs to 4.5MB maximum.");
-                        }
-                        throw new Error(`Server routing runtime failure (Status ${response.status}).`);
-                    }
+                if (elements.progressBar) elements.progressBar.style.width = "50%";
 
-                    const outcome = await response.json();
-                    
-                    // UNPACK ERRS EXPLICITLY: Prevents [object Object] masking alerts on the interface!
-                    if (!response.ok) {
-                        throw new Error(outcome.error || "Database row storage configuration error.");
-                    }
+                // 2. Stream raw binary file directly from browser to Supabase Storage (Bypasses Vercel Proxy Limits!)
+                const directUploadResponse = await fetch(tokenData.uploadUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': selectedFilePayload.type || 'audio/mpeg' },
+                    body: selectedFilePayload
+                });
 
-                    if (elements.progressBar) elements.progressBar.style.width = "100%";
-                    showAlert("Binary distributed globally to Edge storage network rings!");
-                    
-                    elements.uploadForm.reset();
-                    selectedFilePayload = null;
-                    if (elements.dropZoneText) elements.dropZoneText.innerText = "Click or drag an MP3 audio track container here";
-                    
-                    switchActiveWorkspaceView(elements.viewHome);
-                    refreshLibraryContents();
-                } catch (err) {
-                    showAlert(err.message || err);
-                } finally {
-                    if (elements.progressBarContainer) elements.progressBarContainer.classList.add("hidden");
+                if (!directUploadResponse.ok) {
+                    throw new Error("Direct storage asset binary stream streaming failed.");
                 }
-            };
+
+                if (elements.progressBar) elements.progressBar.style.width = "80%";
+
+                // 3. Document details inside relational table using serverless metadata sync route
+                const dbResponse = await fetch('/api/tracks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        artist,
+                        audio_url: tokenData.publicAudioUrl,
+                        filename: tokenData.uniqueFileName
+                    })
+                });
+
+                const dbOutcome = await dbResponse.json();
+                
+                // Unpack and handle database errors cleanly to prevent [object Object] masking alerts
+                if (!dbResponse.ok) {
+                    throw new Error(dbOutcome.error || "Storage complete, but database catalog logging was rejected.");
+                }
+
+                if (elements.progressBar) elements.progressBar.style.width = "100%";
+                showAlert("Binary distributed globally to Edge storage network rings!");
+                
+                elements.uploadForm.reset();
+                selectedFilePayload = null;
+                if (elements.dropZoneText) elements.dropZoneText.innerText = "Click or drag an MP3 audio track container here";
+                
+                switchActiveWorkspaceView(elements.viewHome);
+                refreshLibraryContents();
+            } catch (err) {
+                showAlert(err.message || err);
+            } finally {
+                if (elements.progressBarContainer) elements.progressBarContainer.classList.add("hidden");
+            }
         });
     }
 
