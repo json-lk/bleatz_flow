@@ -7,7 +7,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
     let activeTrackIndex = 0;
     let selectedFilePayload = null;
 
-    // Advanced Audio Player States
+    // Advanced Audio Player Operational Tracking States
     let isShuffleActive = false;
     let isRepeatActive = false;
     let preMuteVolumeLevel = 1.0;
@@ -48,7 +48,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         loginForm: document.getElementById("login-form"),
         signupForm: document.getElementById("signup-form"),
         
-        // Footer Tracking Elements
+        // Footer Audio Info Tracks
         footerTitle: document.querySelector(".player-bar .track-title"),
         footerArtist: document.querySelector(".player-bar .track-artist"),
         footerTimeCurrent: document.querySelector(".player-controls .time:first-child"),
@@ -56,13 +56,13 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         footerProgressBarContainer: document.querySelector(".player-controls .progress-bar"),
         footerProgressBar: document.querySelector(".player-controls .progress"),
         
-        // Interactive Player Buttons
+        // Interactive Audio Deck Control Blocks
         btnShuffle: document.querySelector(".control-buttons button:nth-child(1)"),
         btnPrevious: document.querySelector(".control-buttons button:nth-child(2)"),
         btnNext: document.querySelector(".control-buttons button:nth-child(4)"),
         btnRepeat: document.querySelector(".control-buttons button:nth-child(5)"),
         
-        // Volume Component Nodes
+        // Volume Engine Component Interfaces
         btnVolumeToggle: document.querySelector(".volume-controls button:nth-child(4)"),
         volumeBarContainer: document.querySelector(".volume-bar"),
         footerVolumeBar: document.querySelector(".volume-bar .progress")
@@ -83,7 +83,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         if (elements.secondLvContainer) elements.secondLvContainer.classList.toggle("active-open", anyVisible);
     }
 
-    // Audio Control Suite
+    // Audio Playback Pipeline
     function loadAndPlayTrack(index) {
         if (!currentActiveTracklist[index]) return;
         activeTrackIndex = index;
@@ -94,8 +94,8 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             .then(() => updatePlaybackUi(true))
             .catch((e) => showAlert("Playback streaming block caught: " + e.message));
 
-        if (elements.footerTitle) elements.footerTitle.textContent = track.title;
-        if (elements.footerArtist) elements.footerArtist.textContent = track.artist;
+        if (elements.footerTitle) elements.footerTitle.textContent = track.title || "Unknown Title";
+        if (elements.footerArtist) elements.footerArtist.textContent = track.artist || "Unknown Artist";
     }
 
     function togglePlayback() {
@@ -111,7 +111,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     }
 
-    // Skip Handlers (Next and Previous)
+    // Audio Queue Skippers (Next and Previous)
     function playNextTrack() {
         if (currentActiveTracklist.length === 0) return;
         
@@ -135,7 +135,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     }
 
-    // Dynamic UI state synchronizer
+    // Live Playback Icon Controller State Synchronizer
     function updatePlaybackUi(isPlaying) {
         const iconClass = isPlaying ? "fa-solid fa-circle-pause" : "fa-solid fa-circle-play";
         if (elements.mainPlayBtn) elements.mainPlayBtn.innerHTML = `<i class="${iconClass}"></i>`;
@@ -146,7 +146,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Handle Metadata Realtime Lookups
+    // Database Track Catalog Queries
     async function refreshLibraryContents(searchString = "") {
         try {
             const target = searchString ? `/api/tracks?search=${encodeURIComponent(searchString)}` : '/api/tracks';
@@ -156,7 +156,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             currentActiveTracklist = Array.isArray(tracks) ? tracks : [];
             renderDynamicTrackRows(currentActiveTracklist);
         } catch (err) {
-            console.error("Failed fetching database maps: ", err);
+            console.error("Failed fetching database tracks catalog: ", err);
         }
     }
 
@@ -166,7 +166,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         elements.songDisplaySection.innerHTML = `<h2>Catalog Library Collections</h2>`;
         
         if (tracks.length === 0) {
-            elements.songDisplaySection.innerHTML += `<p class="empty-fallback" style="padding: 20px;">No matching digital binaries mapped.</p>`;
+            elements.songDisplaySection.innerHTML += `<p class="empty-fallback" style="padding: 20px; color:#b3b3b3;">No matching digital audio assets mapped.</p>`;
             return;
         }
 
@@ -200,7 +200,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Audio Player Context Event Listening Streams
+    // Audio Engine Real-time Subscriptions
     activeAudioEngine.addEventListener("timeupdate", () => {
         if (isNaN(activeAudioEngine.duration)) return;
         const current = activeAudioEngine.currentTime;
@@ -227,24 +227,23 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     });
 
-    // Timeline Scrubber Click Integration
+    // Timeline Progress Container Bar Scrubbing Trigger
     if (elements.footerProgressBarContainer) {
         elements.footerProgressBarContainer.addEventListener("click", (e) => {
             if (!activeAudioEngine.src || isNaN(activeAudioEngine.duration)) return;
             const bounds = elements.footerProgressBarContainer.getBoundingClientRect();
-            const clickPositionX = e.clientX - bounds.left;
-            const scrubPercentage = clickPositionX / bounds.width;
-            activeAudioEngine.currentTime = scrubPercentage * activeAudioEngine.duration;
+            const clickX = e.clientX - bounds.left;
+            const scrubPct = clickX / bounds.width;
+            activeAudioEngine.currentTime = scrubPct * activeAudioEngine.duration;
         });
     }
 
-    // Volume Track Engine Management Rules
+    // Live System Audio Sound Deck Adjustments
     function setSystemVolume(targetLevel) {
         const adjustedVolume = Math.max(0, Math.min(1, targetLevel));
         activeAudioEngine.volume = adjustedVolume;
         if (elements.footerVolumeBar) elements.footerVolumeBar.style.width = `${adjustedVolume * 100}%`;
         
-        // Update volume speaker icon based on amplitude levels
         if (!elements.btnVolumeToggle) return;
         if (adjustedVolume === 0) {
             elements.btnVolumeToggle.innerHTML = `<i class="fa-solid fa-volume-xmark"></i>`;
@@ -275,7 +274,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Toggle Modes Action Hook Handlers
+    // Highlight Active Option Toggle Modes (Shuffle / Repeat)
     if (elements.btnShuffle) {
         elements.btnShuffle.addEventListener("click", () => {
             isShuffleActive = !isShuffleActive;
@@ -290,11 +289,9 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Step Triggers Wiring hooks
     if (elements.btnNext) elements.btnNext.addEventListener("click", playNextTrack);
     if (elements.btnPrevious) elements.btnPrevious.addEventListener("click", playPreviousTrack);
 
-    // Heart Button Favorite Switcher
     if (elements.heartBtn) {
         elements.heartBtn.addEventListener("click", () => {
             elements.heartBtn.classList.toggle("active-liked");
@@ -303,7 +300,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Handle Upload Pipelines
+    // Binary Track Upload Pipeline Handling Flow
     if (elements.uploadForm) {
         elements.uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -337,13 +334,17 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                     if (!contentType || !contentType.includes("application/json")) {
                         const rawHtmlText = await response.text();
                         if (response.status === 413 || rawHtmlText.includes("PAYLOAD_TOO_LARGE") || response.status === 504) {
-                            throw new Error("File payload is too large! Vercel limits edge function size body streaming sizes to 4.5MB maximum.");
+                            throw new Error("File payload is too large! Vercel limits direct serverless function body size inputs to 4.5MB maximum.");
                         }
-                        throw new Error(`Server route failure (Status ${response.status}). Check Vercel logs.`);
+                        throw new Error(`Server routing runtime failure (Status ${response.status}).`);
                     }
 
                     const outcome = await response.json();
-                    if (!response.ok) throw new Error(outcome.error || "Upload pipeline fault.");
+                    
+                    // UNPACK ERRS EXPLICITLY: Prevents [object Object] masking alerts on the interface!
+                    if (!response.ok) {
+                        throw new Error(outcome.error || "Database row storage configuration error.");
+                    }
 
                     if (elements.progressBar) elements.progressBar.style.width = "100%";
                     showAlert("Binary distributed globally to Edge storage network rings!");
@@ -355,7 +356,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                     switchActiveWorkspaceView(elements.viewHome);
                     refreshLibraryContents();
                 } catch (err) {
-                    showAlert(err.message);
+                    showAlert(err.message || err);
                 } finally {
                     if (elements.progressBarContainer) elements.progressBarContainer.classList.add("hidden");
                 }
@@ -363,7 +364,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Search Operations Interception Block
+    // Dynamic Live Catalog Filtering Lookups
     if (elements.globalSearchForm) {
         elements.globalSearchForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -376,7 +377,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Account State Sync Subsystems
+    // Account Authentication Sessions Subsystems
     async function runAuthenticationRequest(endpoint, payload) {
         try {
             const response = await fetch(`/api/${endpoint}`, {
@@ -404,7 +405,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             closeAuthModal();
             showAlert(`Successfully authenticated. Welcome back, ${data.username}!`);
         } catch (err) {
-            showAlert(err.message);
+            showAlert(err.message || err);
         }
     }
 
@@ -446,7 +447,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Navigation Wireframing Hooks
+    // App Panel Layout View Router Links
     if (elements.btnListen) elements.btnListen.addEventListener("click", () => toggleSecondLevelView(elements.menuListen));
     if (elements.btnContribute) elements.btnContribute.addEventListener("click", () => { switchActiveWorkspaceView(elements.viewUpload); toggleSecondLevelView(null); });
     if (elements.btnSettings) elements.btnSettings.addEventListener("click", () => { switchActiveWorkspaceView(elements.viewSettings); toggleSecondLevelView(elements.menuSettings); });
@@ -482,7 +483,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         elements.tabSignup?.classList.remove("active"); 
     }
 
-    // Bootstrap Initialization 
+    // Core Init Bootstrap Trigger Loops
     setSystemVolume(1.0);
     updateProfileInterfaceElements();
     switchActiveWorkspaceView(elements.viewHome);
