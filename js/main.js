@@ -101,8 +101,8 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         if (elements.mainPlayBtn) elements.mainPlayBtn.innerHTML = `<i class="${iconClass}"></i>`;
         
         // Synchronize row button icons
-        document.querySelectorAll(".row-play-trigger").forEach((btn, idx) => {
-            idx = parseInt(btn.getAttribute("data-index"));
+        document.querySelectorAll(".row-play-trigger").forEach((btn) => {
+            const idx = parseInt(btn.getAttribute("data-index"));
             btn.innerHTML = `<i class="${idx === activeTrackIndex && isPlaying ? 'fa-solid fa-circle-pause' : 'fa-solid fa-circle-play'}"></i>`;
         });
     }
@@ -206,7 +206,7 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                     const rawBase64 = fileReader.result.split(',')[1];
                     if (elements.progressBar) elements.progressBar.style.width = "50%";
 
-                    const res = await fetch('/api/upload', {
+                    const response = await fetch('/api/upload', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -217,8 +217,18 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                         })
                     });
 
-                    const outcome = await res.json();
-                    if (!res.ok) throw new Error(outcome.error || "Upload pipeline fault.");
+                    // INTERCEPT ACTION: Verify if Vercel crashed out with an HTML limit screen
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const rawHtmlText = await response.text();
+                        if (response.status === 413 || rawHtmlText.includes("PAYLOAD_TOO_LARGE") || response.status === 504) {
+                            throw new Error("File payload is too large! Vercel directly limits edge function body streaming sizes to 4.5MB maximum (approx 3.2MB standard audio file size).");
+                        }
+                        throw new Error(`Server route failure (Status ${response.status}). Ensure file is small or check your Vercel logs.`);
+                    }
+
+                    const outcome = await response.json();
+                    if (!response.ok) throw new Error(outcome.error || "Upload pipeline fault.");
 
                     if (elements.progressBar) elements.progressBar.style.width = "100%";
                     showAlert("Binary distributed globally to Edge storage network rings!");
@@ -260,13 +270,12 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
                 body: JSON.stringify(payload)
             });
 
-            const rawText = await response.text();
-            let data;
-            try {
-                data = JSON.parse(rawText);
-            } catch (e) {
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
                 throw new Error(`Server returned an invalid HTML status (${response.status}). Check Vercel deployment logs.`);
             }
+
+            const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(data.error || "Authentication operation halted.");
