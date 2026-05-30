@@ -13,7 +13,6 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Server missing environment variables." });
         }
 
-        // 1. Register User Profile
         const signUpResponse = await fetch(`${supabaseUrl}/auth/v1/signup`, {
             method: 'POST',
             headers: { 
@@ -33,7 +32,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: signUpData.error?.message || "Registration rejected." });
         }
 
-        // 2. Immediate Token Exchange (URL-Encoded Format to prevent Supabase API failure)
         const tokenResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
             method: 'POST',
             headers: { 
@@ -49,7 +47,6 @@ export default async function handler(req, res) {
 
         const tokenData = await tokenResponse.json();
         if (!tokenResponse.ok || tokenData.error) {
-            // Fallback: Account created safely, but user needs to use the manual sign-in tab
             return res.status(200).json({
                 success: true,
                 fallbackSignInRequired: true,

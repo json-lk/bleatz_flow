@@ -1,4 +1,3 @@
-// api/upload.js
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -15,10 +14,8 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Server missing internal API credentials configuration." });
         }
 
-        // Clean filename formatting to avoid filesystem collisions
         const uniqueFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, "_")}`;
 
-        // Ask Supabase to issue a cryptographic presigned upload endpoint token valid for 15 minutes
         const signUrlEndpoint = `${supabaseUrl}/storage/v1/object/upload/sign/music-files/${uniqueFileName}`;
         const supabaseRes = await fetch(signUrlEndpoint, {
             method: 'POST',
@@ -37,7 +34,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: signData.message || "Failed generating upload signature token." });
         }
 
-        // Send upload endpoint, file token parameters, and public stream destination back to the client
         return res.status(200).json({
             uploadUrl: `${supabaseUrl}/storage/v1${signData.url}`,
             uniqueFileName: uniqueFileName,

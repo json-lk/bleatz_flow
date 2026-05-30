@@ -1,4 +1,3 @@
-/* --- RESET & BASIC STRUCTURE --- */
 body {
     display: flex;
     flex-direction: column;
@@ -21,7 +20,6 @@ header {
     padding: 0 24px;
 }
 
-/* Custom Added Player Interactions */
 .progress-container .progress-bar,
 .volume-controls .volume-bar {
     cursor: pointer !important;
@@ -94,7 +92,6 @@ input#search::placeholder {
     color: #757575;
 }
 
-/* --- THE NAVIGATION PANELS --- */
 .the-rest {
     display: flex;
     flex-direction: row;
@@ -192,7 +189,6 @@ input#search::placeholder {
     background-color: #282828;
 }
 
-/* --- QUICK ACCESS SIDEBAR DRAWERS --- */
 .sidebar-tag {
     font-size: 11px; 
     text-transform: uppercase; 
@@ -258,7 +254,6 @@ input#search::placeholder {
     width: auto !important;
 }
 
-/* --- MAIN CANVAS HUB & INTEGRATED VIEW INTERFACES --- */
 .main-content {
     display: flex;
     flex-direction: row;
@@ -314,7 +309,6 @@ input#search::placeholder {
     background-color: #2a2a2a;
 }
 
-/* --- SONG LIST BARS --- */
 .song-bar {
     height: 64px;
     width: 100%;
@@ -384,7 +378,6 @@ input#search::placeholder {
     text-align: right;
 }
 
-/* --- DETAILED VIEW RULES FOR ADDED SECTIONS --- */
 .view-header-split {
     display: flex; 
     justify-content: space-between; 
@@ -660,7 +653,6 @@ input#search::placeholder {
 }
 .purge-cache-btn:hover { background: rgba(239, 68, 68, 0.1); }
 
-/* --- MANAGE MY UPLOADS MODAL WINDOW --- */
 .modal-overlay {
     position: fixed; 
     top: 0; 
@@ -705,7 +697,6 @@ input#search::placeholder {
     display: flex !important;
 }
 
-/* --- INTEGRATED AUTH SPLIT STYLING --- */
 .auth-box {
     max-width: 400px;
     padding: 32px;
@@ -753,28 +744,24 @@ input#search::placeholder {
     font-size: 20px;
 }
 
-/* 1. Global modal wrapper close handler */
 #auth-modal.hidden {
     display: none !important;
 }
 
-/* 2. When data-view is login: show login, hide signup */
 #auth-modal[data-view="login"] #login-form-container {
-    display: block; /* change to flex/grid if your form layout requires it */
+    display: block;
 }
 #auth-modal[data-view="login"] #signup-form-container {
     display: none !important;
 }
 
-/* 3. When data-view is signup: show signup, hide login */
 #auth-modal[data-view="signup"] #signup-form-container {
-    display: block; /* change to flex/grid if your form layout requires it */
+    display: block;
 }
 #auth-modal[data-view="signup"] #login-form-container {
     display: none !important;
 }
 
-/* --- FIXED STICKY FOOTER PLAYER MECHANISM --- */
 .player-bar {
     height: 90px;
     background-color: #0c0c0c;

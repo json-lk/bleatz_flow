@@ -46,7 +46,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         loginForm: document.getElementById("login-form"),
         signupForm: document.getElementById("signup-form"),
         
-        // Footer Audio Info Tracks
         footerTitle: document.querySelector(".player-bar .track-title"),
         footerArtist: document.querySelector(".player-bar .track-artist"),
         footerTimeCurrent: document.querySelector(".player-controls .time:first-child"),
@@ -54,13 +53,11 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         footerProgressBarContainer: document.querySelector(".player-controls .progress-bar"),
         footerProgressBar: document.querySelector(".player-controls .progress"),
         
-        // Interactive Audio Deck Control Blocks
         btnShuffle: document.querySelector(".control-buttons button:nth-child(1)"),
         btnPrevious: document.querySelector(".control-buttons button:nth-child(2)"),
         btnNext: document.querySelector(".control-buttons button:nth-child(4)"),
         btnRepeat: document.querySelector(".control-buttons button:nth-child(5)"),
-        
-        // Volume Engine Component Interfaces
+
         btnVolumeToggle: document.querySelector(".volume-controls button:nth-child(4)"),
         volumeBarContainer: document.querySelector(".volume-bar"),
         footerVolumeBar: document.querySelector(".volume-bar .progress")
@@ -81,7 +78,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         if (elements.secondLvContainer) elements.secondLvContainer.classList.toggle("active-open", anyVisible);
     }
 
-    // Audio Playback Pipeline
     function loadAndPlayTrack(index) {
         if (!currentActiveTracklist[index]) return;
         activeTrackIndex = index;
@@ -109,7 +105,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     }
 
-    // Audio Queue Skippers (Next and Previous)
     function playNextTrack() {
         if (currentActiveTracklist.length === 0) return;
         
@@ -133,7 +128,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     }
 
-    // Live Playback Icon Controller State Synchronizer
     function updatePlaybackUi(isPlaying) {
         const iconClass = isPlaying ? "fa-solid fa-circle-pause" : "fa-solid fa-circle-play";
         if (elements.mainPlayBtn) elements.mainPlayBtn.innerHTML = `<i class="${iconClass}"></i>`;
@@ -144,7 +138,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Database Track Catalog Queries (Search Pipeline Endpoint Mapping)
     async function refreshLibraryContents(searchString = "") {
         try {
             const target = searchString ? `/api/tracks?search=${encodeURIComponent(searchString)}` : '/api/tracks';
@@ -198,7 +191,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Audio Engine Real-time Subscriptions
     activeAudioEngine.addEventListener("timeupdate", () => {
         if (isNaN(activeAudioEngine.duration)) return;
         const current = activeAudioEngine.currentTime;
@@ -225,7 +217,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         }
     });
 
-    // Timeline Progress Container Bar Scrubbing Trigger
     if (elements.footerProgressBarContainer) {
         elements.footerProgressBarContainer.addEventListener("click", (e) => {
             if (!activeAudioEngine.src || isNaN(activeAudioEngine.duration)) return;
@@ -236,7 +227,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Live System Audio Sound Deck Adjustments
     function setSystemVolume(targetLevel) {
         const adjustedVolume = Math.max(0, Math.min(1, targetLevel));
         activeAudioEngine.volume = adjustedVolume;
@@ -272,7 +262,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Highlight Active Option Toggle Modes (Shuffle / Repeat)
     if (elements.btnShuffle) {
         elements.btnShuffle.addEventListener("click", () => {
             isShuffleActive = !isShuffleActive;
@@ -298,7 +287,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Binary Track Upload Pipeline Handling Flow (Direct-to-Storage Presigned Bypass)
     if (elements.uploadForm) {
         elements.uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -313,7 +301,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
             if (elements.progressBar) elements.progressBar.style.width = "20%";
 
             try {
-                // 1. Fetch the direct upload tunnel credentials from Vercel
                 const tokenResponse = await fetch('/api/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -325,7 +312,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
 
                 if (elements.progressBar) elements.progressBar.style.width = "50%";
 
-                // 2. Upload raw binary file straight to Supabase Storage (Unlimited Size!)
                 const directUploadResponse = await fetch(tokenData.uploadUrl, {
                     method: 'PUT',
                     headers: { 'Content-Type': selectedFilePayload.type || 'audio/mpeg' },
@@ -338,7 +324,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
 
                 if (elements.progressBar) elements.progressBar.style.width = "80%";
 
-                // 3. Document track metadata inside your PostgreSQL table securely via /api/tracks
                 const dbResponse = await fetch('/api/tracks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -373,7 +358,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Dynamic Live Catalog Filtering Lookups
     if (elements.globalSearchForm) {
         elements.globalSearchForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -386,7 +370,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // Account Authentication Sessions Subsystems
     async function runAuthenticationRequest(endpoint, payload) {
         try {
             const response = await fetch(`/api/${endpoint}`, {
@@ -456,7 +439,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         });
     }
 
-    // App Panel Layout View Router Links
     if (elements.btnListen) elements.btnListen.addEventListener("click", () => toggleSecondLevelView(elements.menuListen));
     if (elements.btnContribute) elements.btnContribute.addEventListener("click", () => { switchActiveWorkspaceView(elements.viewUpload); toggleSecondLevelView(null); });
     if (elements.btnSettings) elements.btnSettings.addEventListener("click", () => { switchActiveWorkspaceView(elements.viewSettings); toggleSecondLevelView(elements.menuSettings); });
@@ -492,7 +474,6 @@ const STORAGE_KEYS = { auth: "beatz_flow_auth" };
         elements.tabSignup?.classList.remove("active"); 
     }
 
-    // Core Init Bootstrap Trigger Loops
     setSystemVolume(1.0);
     updateProfileInterfaceElements();
     switchActiveWorkspaceView(elements.viewHome);

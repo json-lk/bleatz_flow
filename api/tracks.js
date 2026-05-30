@@ -1,4 +1,3 @@
-// api/tracks.js
 export default async function handler(req, res) {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_KEY;
@@ -7,7 +6,6 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Server missing internal database configuration maps." });
     }
 
-    // METHOD POST: Secure backend route to record newly uploaded tracking data details
     if (req.method === 'POST') {
         try {
             const { title, artist, audio_url, filename } = req.body;
@@ -39,7 +37,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // METHOD GET: Retrieve catalogue assets or execute real-time filters
     if (req.method === 'GET') {
         try {
             const { search } = req.query;
