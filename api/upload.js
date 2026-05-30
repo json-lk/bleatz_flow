@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     try {
         const { title, artist, fileData, fileName, fileType } = req.body;
         if (!fileData || !title || !artist) {
-            return res.status(400).json({ error:"Missing required upload parameters." });
+            return res.status(400).json({ error: "Missing required upload parameters." });
         }
 
         const supabaseUrl = process.env.SUPABASE_URL;
@@ -59,11 +59,11 @@ export default async function handler(req, res) {
 
         const dbData = await dbRes.json();
 
-        // FIX: Explicitly verify that the Postgres row entry succeeded
+        // Catch database structural errors or schema cache rejections
         if (!dbRes.ok) {
             console.error("Supabase Database Error Details:", dbData);
             return res.status(dbRes.status || 400).json({ 
-                error: dbData.message || "The file uploaded to storage, but Row-Level Security (RLS) or database rules blocked saving the song details to the tracks table." 
+                error: dbData.message || "Database rejected saving track row info data structures." 
             });
         }
 

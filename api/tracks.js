@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("Fetch tracks error:", data);
+            console.error("Fetch tracks catalog error:", data);
             return res.status(response.status).json({ error: data.message || "Failed fetching tracks catalog." });
         }
 
