@@ -315,7 +315,7 @@ input#search::placeholder {
 }
 
 /* --- SONG LIST BARS --- */
-#song-bar {
+.song-bar {
     height: 64px;
     width: 100%;
     display: flex;
@@ -330,11 +330,11 @@ input#search::placeholder {
     transition: background-color 0.2s;
 }
 
-#song-bar:hover {
+.song-bar:hover {
     background-color: #181818;
 }
 
-#song-bar img {
+.song-bar img {
     border-radius: 4px;
     height: 40px;
     width: 40px;
